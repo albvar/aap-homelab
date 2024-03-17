@@ -3,27 +3,22 @@
   hosts: all
   become: true
   tasks:
-    - name: Check available updates
+    - name: Update apt cache
       apt:
         update_cache: yes
-        upgrade: check
-      register: before_update
+      register: update_cache
 
-    - name: Display number of updates before upgrade
+    - name: Check for upgradable packages
+      command: apt list --upgradable
+      register: upgradable_packages
+      changed_when: false
+
+    - name: Display upgradable packages
       debug:
-        msg: "{{ before_update.upgradable_packages | length }} packages can be upgraded."
+        msg: "{{ upgradable_packages.stdout_lines }}"
 
     - name: Update and upgrade apt packages
       apt:
         update_cache: yes
         upgrade: dist
 
-    - name: Check available updates again
-      apt:
-        update_cache: yes
-        upgrade: check
-      register: after_update
-
-    - name: Display number of updates after upgrade
-      debug:
-        msg: "{{ after_update.upgradable_packages | length }} packages can be upgraded."
