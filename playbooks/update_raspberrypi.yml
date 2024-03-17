@@ -3,6 +3,13 @@
   hosts: all
   become: true
   tasks:
+    - name: Ensure we have root privileges
+      command: whoami
+      register: whoami_output
+
+    - name: Display the whoami result
+      debug:
+        var: whoami_output.stdout
     - name: Update apt cache
       apt:
         update_cache: yes
