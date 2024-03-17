@@ -3,7 +3,27 @@
   hosts: all
   become: true
   tasks:
+    - name: Check available updates
+      apt:
+        update_cache: yes
+        upgrade: check
+      register: before_update
+
+    - name: Display number of updates before upgrade
+      debug:
+        msg: "{{ before_update.upgradable_packages | length }} packages can be upgraded."
+
     - name: Update and upgrade apt packages
       apt:
         update_cache: yes
         upgrade: dist
+
+    - name: Check available updates again
+      apt:
+        update_cache: yes
+        upgrade: check
+      register: after_update
+
+    - name: Display number of updates after upgrade
+      debug:
+        msg: "{{ after_update.upgradable_packages | length }} packages can be upgraded."
