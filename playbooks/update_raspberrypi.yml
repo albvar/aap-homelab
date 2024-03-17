@@ -29,5 +29,5 @@
 
     - name: Update and upgrade apt packages
       apt:
-        update_cache: ye
+        update_cache: true
         upgrade: dist
