@@ -3,15 +3,6 @@
   hosts: all
   become: true
   tasks:
-    - name: Check for root privileges
-      command: id -u
-      register: uid
-
-    - name: Fail if not running as root
-      fail:
-        msg: "This playbook must be run as root."
-      when: uid.stdout != "0"
-
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -28,6 +19,6 @@
 
     - name: Update and upgrade apt packages
       apt:
-        update_cache: yes
+        update_cache: ye
         upgrade: dist
 
