@@ -1,0 +1,9 @@
+---
+- name: Update and upgrade Raspberry Pi systems
+  hosts: all
+  become: true
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
