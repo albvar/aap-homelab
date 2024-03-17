@@ -19,9 +19,12 @@
 
     - name: Check for upgradable packages
       command: apt list --upgradable
-      become: true
       register: upgradable_packages
       changed_when: false
+    
+    - name: Display count of upgradable packages
+      debug:
+        msg: "{{ upgradable_packages.stdout_lines | length - 1 }}"
 
     - name: Display upgradable packages
       debug:
