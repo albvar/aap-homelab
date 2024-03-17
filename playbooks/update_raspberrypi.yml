@@ -10,6 +10,7 @@
     - name: Display the whoami result
       debug:
         var: whoami_output.stdout
+
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -17,6 +18,7 @@
 
     - name: Check for upgradable packages
       command: apt list --upgradable
+      become: true
       register: upgradable_packages
       changed_when: false
 
@@ -28,4 +30,3 @@
       apt:
         update_cache: ye
         upgrade: dist
-
