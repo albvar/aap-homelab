@@ -26,10 +26,6 @@
       debug:
         msg: "{{ upgradable_packages.stdout_lines | length - 1 }}"
 
-    - name: Display upgradable packages
-      debug:
-        msg: "{{ upgradable_packages.stdout_lines }}"
-
     - name: Update and upgrade apt packages
       apt:
         update_cache: true
