@@ -1,32 +1,62 @@
----
-- name: Update Docker Swarm Services
-  hosts: all
+- name: Docker Swarm node update and upgrade playbook
+  hosts: '{{ target }}'
   become: true
+  become_user: root
+  serial: 1
+  vars:
+    swarm_manager_host: "swarmmaster.vargas.home:2375"
+  
   tasks:
-    - name: Collect all facts from the system
-      ansible.builtin.setup:
+    - name: Ensure we have root privileges
+      command: whoami
+      register: whoami_output
 
-    - name: Print specific system information
-      ansible.builtin.debug:
-        msg: |
-          System OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
-          Machine: {{ ansible_machine }}
-          Processor: {{ ansible_processor[-1] }}
-      
-    - name: Pull latest image for each service
-      community.docker.docker_image:
-        name: "{{ item.name }}:latest"
-        source: pull
-      loop:
-        - { name: 'usenet_sabnzbd' }
-      # Add more services as needed
+    - name: Display the whoami result
+      debug:
+        var: whoami_output.stdout
 
-    - name: Update Docker Swarm services to use the latest image
-      docker_swarm_service:
-        name: "{{ item.name }}"
-        image: "{{ item.name }}:latest"
-        state: present
-        force_update: yes
-      loop:
-        - { name: 'usenet_sabnzbd' }
-      # Add more services as needed
+    - name: docker info
+      command: docker info
+      register: docker_info
+
+    - name: Drain Docker node for maintenance
+      environment:
+        DOCKER_HOST: "tcp://{{ swarm_manager_host }}"
+      shell: docker node update --availability drain '{{ inventory_hostname }}'
+      delegate_to: localhost
+
+    - name: Update apt cache and upgrade all packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+
+    - name: Reboot the server
+      shell: sleep 2 && /sbin/shutdown -r now "Ansible reboot"
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for server to come back online
+      local_action:
+        module: wait_for
+        host: '{{ ansible_default_ipv4.address }}'
+        port: 22
+        state: started
+        delay: 30
+        timeout: 240
+
+    - name: Wait for Swarm manager node to start
+      wait_for:
+        host: '{{ inventory_hostname }}'
+        port: 2377
+        delay: 5
+        state: started
+        timeout: 1200
+      when: "docker_info.stdout | search('Is Manager: true')"
+
+    - name: Activate Docker node after maintenance
+      environment:
+        DOCKER_HOST: "tcp://{{ swarm_manager_host }}"
+      shell: docker node update --availability active '{{ inventory_hostname }}'
+      delegate_to: localhost
