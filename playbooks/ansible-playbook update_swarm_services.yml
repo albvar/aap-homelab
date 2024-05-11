@@ -3,6 +3,16 @@
   hosts: all
   become: true
   tasks:
+    - name: Collect all facts from the system
+      ansible.builtin.setup:
+
+    - name: Print specific system information
+      ansible.builtin.debug:
+        msg: |
+          System OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Machine: {{ ansible_machine }}
+          Processor: {{ ansible_processor[-1] }}
+      
     - name: Pull latest image for each service
       community.docker.docker_image:
         name: "{{ item.name }}:latest"
