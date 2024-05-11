@@ -1,5 +1,5 @@
 - name: Docker Swarm node update and upgrade playbook
-  hosts: '{{ target }}'
+  hosts: all
   become: true
   become_user: root
   serial: 1
