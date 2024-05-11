@@ -22,7 +22,7 @@
     - name: Drain Docker node for maintenance
       environment:
         DOCKER_HOST: "tcp://{{ swarm_manager_host }}"
-      shell: docker node update --availability drain '{{ inventory_hostname }}'
+      shell: docker node update --availability drain '{{ inventory_hostname.split('.')[0] }}'
       delegate_to: localhost
 
     - name: Update apt cache and upgrade all packages
@@ -58,5 +58,5 @@
     - name: Activate Docker node after maintenance
       environment:
         DOCKER_HOST: "tcp://{{ swarm_manager_host }}"
-      shell: docker node update --availability active '{{ inventory_hostname }}'
+      shell: docker node update --availability active '{{ inventory_hostname.split('.')[0] }}'
       delegate_to: localhost
