@@ -1,0 +1,22 @@
+---
+- name: Update Docker Swarm Services
+  hosts: all
+  become: true
+  tasks:
+    - name: Pull latest image for each service
+      docker_image:
+        name: "{{ item.name }}:latest"
+        source: pull
+      loop:
+        - { name: 'usenet_sabnzbd' }
+      # Add more services as needed
+
+    - name: Update Docker Swarm services to use the latest image
+      docker_swarm_service:
+        name: "{{ item.name }}"
+        image: "{{ item.name }}:latest"
+        state: present
+        force_update: yes
+      loop:
+        - { name: 'usenet_sabnzbd' }
+      # Add more services as needed
