@@ -4,7 +4,7 @@
   become: true
   tasks:
     - name: Pull latest image for each service
-      docker_image:
+      community.docker.docker_image:
         name: "{{ item.name }}:latest"
         source: pull
       loop:
