@@ -1,0 +1,54 @@
+---
+- name: Install and configure CUPS and Brother HL-5340D printer driver on Raspberry Pi
+  hosts: cups_print_servers
+  become: yes
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install CUPS
+      apt:
+        name: cups
+        state: present
+
+    - name: Ensure CUPS service is enabled and started
+      service:
+        name: cups
+        state: started
+        enabled: yes
+
+    - name: Configure CUPS to listen on LAN IP address and allow subnet 192.168.100.0/24
+      blockinfile:
+        path: /etc/cups/cupsd.conf
+        block: |
+          # Restrict access to the server...
+          <Location />
+            Order allow,deny
+            Allow from 192.168.100.*
+          </Location>
+
+          # Restrict access to the admin pages...
+          <Location /admin>
+            Order allow,deny
+            Allow from 192.168.100.*
+          </Location>
+
+          # Adjust access for printer management operations
+          <Policy default>
+            <Limit CUPS-Add-Modify-Printer>
+              Order allow,deny
+            </Limit>
+            # Other <Limit> blocks for different operations...
+          </Policy>
+        create: yes
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+      notify:
+        - restart cups
+
+  handlers:
+    - name: restart cups
+      service:
+        name: cups
+        state: restarted
